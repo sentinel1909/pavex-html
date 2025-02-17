@@ -8,6 +8,7 @@ struct ServerState {
 }
 pub struct ApplicationState {
     pub css_asset: app::asset::CSSAsset,
+    pub js_asset: app::asset::JSAsset,
     pub tera: tera::Tera,
 }
 #[derive(Debug, thiserror::Error)]
@@ -29,12 +30,14 @@ pub async fn build_application_state() -> Result<
             };
         }
     };
-    let v2 = app::asset::CSSAsset::build_css_asset();
-    let v3 = crate::ApplicationState {
-        css_asset: v2,
+    let v2 = app::asset::JSAsset::build_js_asset();
+    let v3 = app::asset::CSSAsset::build_css_asset();
+    let v4 = crate::ApplicationState {
+        css_asset: v3,
+        js_asset: v2,
         tera: v1,
     };
-    core::result::Result::Ok(v3)
+    core::result::Result::Ok(v4)
 }
 pub fn run(
     server_builder: pavex::server::Server,
@@ -70,6 +73,7 @@ impl Router {
         router.insert("/", 0u32).unwrap();
         router.insert("/api/ping", 1u32).unwrap();
         router.insert("/static/screen.css", 2u32).unwrap();
+        router.insert("/static/script.js", 3u32).unwrap();
         router
     }
     pub async fn route(
@@ -89,7 +93,7 @@ impl Router {
             let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                 "*",
             );
-            return route_3::entrypoint(
+            return route_4::entrypoint(
                     &request_head,
                     matched_route_template,
                     &allowed_methods,
@@ -118,7 +122,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/",
                         );
-                        route_3::entrypoint(
+                        route_4::entrypoint(
                                 &request_head,
                                 matched_route_template,
                                 &allowed_methods,
@@ -143,7 +147,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/ping",
                         );
-                        route_3::entrypoint(
+                        route_4::entrypoint(
                                 &request_head,
                                 matched_route_template,
                                 &allowed_methods,
@@ -173,7 +177,37 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/static/screen.css",
                         );
+                        route_4::entrypoint(
+                                &request_head,
+                                matched_route_template,
+                                &allowed_methods,
+                            )
+                            .await
+                    }
+                }
+            }
+            3u32 => {
+                match &request_head.method {
+                    &pavex::http::Method::GET => {
+                        let matched_route_template = pavex::request::path::MatchedPathPattern::new(
+                            "/static/script.js",
+                        );
                         route_3::entrypoint(
+                                &request_head,
+                                matched_route_template,
+                                &state.js_asset,
+                            )
+                            .await
+                    }
+                    _ => {
+                        let allowed_methods: pavex::router::AllowedMethods = pavex::router::MethodAllowList::from_iter([
+                                pavex::http::Method::GET,
+                            ])
+                            .into();
+                        let matched_route_template = pavex::request::path::MatchedPathPattern::new(
+                            "/static/script.js",
+                        );
+                        route_4::entrypoint(
                                 &request_head,
                                 matched_route_template,
                                 &allowed_methods,
@@ -524,6 +558,116 @@ pub mod route_3 {
     pub async fn entrypoint<'a, 'b>(
         s_0: &'a pavex::request::RequestHead,
         s_1: pavex::request::path::MatchedPathPattern,
+        s_2: &'b app::asset::JSAsset,
+    ) -> pavex::response::Response {
+        let response = wrapping_0(s_0, s_1, s_2).await;
+        response
+    }
+    async fn stage_1<'a, 'b>(
+        s_0: &'a app::asset::JSAsset,
+        s_1: &'b pavex::request::RequestHead,
+        s_2: pavex::request::path::MatchedPathPattern,
+    ) -> pavex::response::Response {
+        let response = wrapping_1(s_1, s_2, s_0).await;
+        response
+    }
+    async fn stage_2<'a, 'b>(
+        s_0: &'a pavex_tracing::RootSpan,
+        s_1: &'b app::asset::JSAsset,
+    ) -> pavex::response::Response {
+        let response = handler(s_1).await;
+        let response = post_processing_0(response, s_0).await;
+        response
+    }
+    async fn wrapping_0(
+        v0: &pavex::request::RequestHead,
+        v1: pavex::request::path::MatchedPathPattern,
+        v2: &app::asset::JSAsset,
+    ) -> pavex::response::Response {
+        let v3 = crate::route_3::Next0 {
+            s_0: v2,
+            s_1: v0,
+            s_2: v1,
+            next: stage_1,
+        };
+        let v4 = pavex::middleware::Next::new(v3);
+        let v5 = pavex::middleware::wrap_noop(v4).await;
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v5)
+    }
+    async fn wrapping_1(
+        v0: &pavex::request::RequestHead,
+        v1: pavex::request::path::MatchedPathPattern,
+        v2: &app::asset::JSAsset,
+    ) -> pavex::response::Response {
+        let v3 = pavex::telemetry::ServerRequestId::generate();
+        let v4 = app::telemetry::root_span(v0, v1, v3);
+        let v5 = crate::route_3::Next1 {
+            s_0: &v4,
+            s_1: v2,
+            next: stage_2,
+        };
+        let v6 = pavex::middleware::Next::new(v5);
+        let v7 = <pavex_tracing::RootSpan as core::clone::Clone>::clone(&v4);
+        let v8 = pavex_tracing::logger(v7, v6).await;
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v8)
+    }
+    async fn handler(v0: &app::asset::JSAsset) -> pavex::response::Response {
+        let v1 = app::routes::js_asset::get(v0);
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v1)
+    }
+    async fn post_processing_0(
+        v0: pavex::response::Response,
+        v1: &pavex_tracing::RootSpan,
+    ) -> pavex::response::Response {
+        let v2 = app::telemetry::response_logger(v0, v1).await;
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v2)
+    }
+    struct Next0<'a, 'b, T>
+    where
+        T: std::future::Future<Output = pavex::response::Response>,
+    {
+        s_0: &'a app::asset::JSAsset,
+        s_1: &'b pavex::request::RequestHead,
+        s_2: pavex::request::path::MatchedPathPattern,
+        next: fn(
+            &'a app::asset::JSAsset,
+            &'b pavex::request::RequestHead,
+            pavex::request::path::MatchedPathPattern,
+        ) -> T,
+    }
+    impl<'a, 'b, T> std::future::IntoFuture for Next0<'a, 'b, T>
+    where
+        T: std::future::Future<Output = pavex::response::Response>,
+    {
+        type Output = pavex::response::Response;
+        type IntoFuture = T;
+        fn into_future(self) -> Self::IntoFuture {
+            (self.next)(self.s_0, self.s_1, self.s_2)
+        }
+    }
+    struct Next1<'a, 'b, T>
+    where
+        T: std::future::Future<Output = pavex::response::Response>,
+    {
+        s_0: &'a pavex_tracing::RootSpan,
+        s_1: &'b app::asset::JSAsset,
+        next: fn(&'a pavex_tracing::RootSpan, &'b app::asset::JSAsset) -> T,
+    }
+    impl<'a, 'b, T> std::future::IntoFuture for Next1<'a, 'b, T>
+    where
+        T: std::future::Future<Output = pavex::response::Response>,
+    {
+        type Output = pavex::response::Response;
+        type IntoFuture = T;
+        fn into_future(self) -> Self::IntoFuture {
+            (self.next)(self.s_0, self.s_1)
+        }
+    }
+}
+pub mod route_4 {
+    pub async fn entrypoint<'a, 'b>(
+        s_0: &'a pavex::request::RequestHead,
+        s_1: pavex::request::path::MatchedPathPattern,
         s_2: &'b pavex::router::AllowedMethods,
     ) -> pavex::response::Response {
         let response = wrapping_0(s_0, s_1, s_2).await;
@@ -550,7 +694,7 @@ pub mod route_3 {
         v1: pavex::request::path::MatchedPathPattern,
         v2: &pavex::router::AllowedMethods,
     ) -> pavex::response::Response {
-        let v3 = crate::route_3::Next0 {
+        let v3 = crate::route_4::Next0 {
             s_0: v2,
             s_1: v0,
             s_2: v1,
@@ -567,7 +711,7 @@ pub mod route_3 {
     ) -> pavex::response::Response {
         let v3 = pavex::telemetry::ServerRequestId::generate();
         let v4 = app::telemetry::root_span(v0, v1, v3);
-        let v5 = crate::route_3::Next1 {
+        let v5 = crate::route_4::Next1 {
             s_0: &v4,
             s_1: v2,
             next: stage_2,

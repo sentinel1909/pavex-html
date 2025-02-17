@@ -13,6 +13,7 @@ pub fn blueprint() -> Blueprint {
     routes::register(&mut bp);
     bp.singleton(f!(crate::template::compile_templates));
     bp.singleton(f!(crate::asset::CSSAsset::build_css_asset));
+    bp.singleton(f!(crate::asset::JSAsset::build_js_asset));
 
     bp
 }
