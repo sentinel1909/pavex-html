@@ -29,8 +29,8 @@ impl StaticAsset {
         let file = params.0.filename;
         Self {
             name: file.clone(),
-            data: Asset::get(file.as_str()).unwrap().data(),
-            mime_type: from_path(file.as_str())
+            data: Asset::get(&file).unwrap().data(),
+            mime_type: from_path(&file)
                 .first_raw()
                 .unwrap_or("application/octet-stream"),
         }
