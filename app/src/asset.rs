@@ -1,36 +1,29 @@
-// app/src/assets.rs
+// app/src/asset.rs
 
 // dependencies
-use rust_embed::Embed;
+use mime_guess::from_path;
+use rust_embed_for_web::{EmbedableFile, RustEmbed};
 
-// struct type to represent an asset
-#[derive(Embed)]
+// struct type to represent a static asset from the file system
+#[derive(RustEmbed)]
 #[folder = "../static"]
-pub struct Asset;
+struct Asset;
 
-// struct type to represent a CSS asset
+// struct type to represent a static asset, CSS, JS, an image, or anything else
 #[derive(Clone)]
-pub struct CSSAsset(pub Vec<u8>);
-
-// implementation block for the CSSAsset type (registered as a constructor for Pavex)
-impl CSSAsset {
-    pub fn build_css_asset() -> Self {
-        let css_asset = Asset::get("screen.css").unwrap();  // need to work out a sensible default, the file might not exist
-
-        Self(css_asset.data.to_vec())
-    }
+pub struct StaticAsset {
+    pub name: &'static str,
+    pub data: Vec<u8>,
+    pub mime_type: &'static str,
 }
 
-// struct type to represent a JavaScript asset
-#[derive(Clone)]
-pub struct JSAsset(pub Vec<u8>);
-
-// implementation block for the JSAsset type (registered as a constructor for Pavex)
-impl JSAsset {
-    pub fn build_js_asset() -> Self {
-        let js_asset = Asset::get("script.js").unwrap();
-
-        Self(js_asset.data.to_vec())
+// methods for the StaticAsset type
+impl StaticAsset {
+    pub fn build_static_asset() -> Self {
+        Self {
+            name: "screen.css",
+            data: Asset::get("screen.css").unwrap().data().to_vec(),
+            mime_type: from_path("screen.css").first_raw().unwrap_or("application/octet-stream"),
+        }
     }
 }
-
