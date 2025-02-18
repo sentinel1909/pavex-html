@@ -3,18 +3,11 @@
 // dependencies
 use crate::asset::StaticAsset;
 use pavex::http::HeaderValue;
-use pavex::request::path::PathParams;
 use pavex::response::body::{
     raw::{Bytes, Full},
     TypedBody,
 };
 use pavex::response::Response;
-
-// struct type for the {filename} path parameter
-#[PathParams]
-pub struct GetFilenameParams {
-    pub filename: String,
-}
 
 // implement the TypedBody trait for the CSSAsset type, so that the 'text/css' header is set
 impl TypedBody for StaticAsset {
@@ -30,8 +23,7 @@ impl TypedBody for StaticAsset {
 }
 
 // handler function which responds with a 200 OK and the CSS styles
-pub fn get(_params: &PathParams<GetFilenameParams>, asset: &StaticAsset) -> Response {
+pub fn get(asset: StaticAsset) -> Response {
     
-
-    Response::ok().set_typed_body(asset.clone())
+    Response::ok().set_typed_body(asset)
 }
