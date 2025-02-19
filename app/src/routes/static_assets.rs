@@ -14,7 +14,7 @@ impl TypedBody for StaticAsset {
     type Body = Full<Bytes>;
 
     fn content_type(&self) -> HeaderValue {
-        HeaderValue::from_static(self.mime_type)
+         HeaderValue::from_str(&self.mime_type).unwrap()
     }
 
     fn body(self) -> Self::Body {
