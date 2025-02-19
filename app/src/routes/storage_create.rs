@@ -2,11 +2,12 @@
 
 // dependencies
 use crate::configuration::AppConfig;
-use pavex::{request::path::PathParams, response::{body::Json, Response}};
+use opendal::Result;
+use pavex::{request::query::QueryParams, response::{body::Json, Response}};
 use std::borrow::Cow;
 
-#[PathParams]
-pub struct DirectoryPathParam {
+#[derive(serde::Deserialize)]
+pub struct DirParams {
   pub dir: Cow<'static, str>,
 }
 
@@ -15,19 +16,27 @@ struct StorageCreateResponse {
   message: Cow<'static, str>,
 }
 
+// error handler
+pub async fn storage_create2response(e: &pavex::Error) -> Response {
+  Response::internal_server_error().set_typed_body(e.to_string())
+}
+
 // storage_create get handler function
-pub async fn get(config: &AppConfig, params: PathParams<DirectoryPathParam>) -> Response {
+pub async fn get(config: &AppConfig, params: &QueryParams<DirParams>) -> Result<Response> {
 
-  let directory = params.0.dir;
-  let storage = config.local_storage_config().build().unwrap();
+  let mut directory = params.0.dir.to_string();
+  directory.push('/');
+  let storage = config.local_storage_config().build()?;
 
-  storage.create_dir(directory.as_ref()).await.unwrap();
+  storage.create_dir(&directory).await?;
 
   let response = StorageCreateResponse {
-    message: Cow::Borrowed("Created"),
+    message: Cow::Owned(format!("Created new directory named: {}", directory)),
   };
 
   let json_response = Json::new(response).expect("Failed to serialize the response body.");
 
-  Response::ok().set_typed_body(json_response)
+  let response = Response::ok().set_typed_body(json_response);
+
+  Ok(response)
 }

@@ -20,6 +20,7 @@ app = { version = "0.1.0", path = "../app", default-features = false }
 http = { version = "1.2.0", default-features = false }
 hyper = { version = "1.6.0", default-features = false }
 matchit = { version = "0.8.6", default-features = false }
+opendal = { version = "0.51.2", default-features = false }
 pavex = { version = "0.1.74", default-features = false }
 pavex_tracing = { version = "0.1.74", default-features = false }
 tera = { version = "1.20.0", default-features = false }

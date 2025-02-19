@@ -2347,6 +2347,7 @@ dependencies = [
  "http",
  "hyper",
  "matchit",
+ "opendal",
  "pavex",
  "pavex_tracing",
  "tera",

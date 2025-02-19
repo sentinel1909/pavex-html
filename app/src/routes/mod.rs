@@ -11,5 +11,6 @@ pub fn register(bp: &mut Blueprint) {
         .error_handler(f!(crate::routes::index::tera_error2response));
     bp.route(GET, "/static/{filename}", f!(self::static_assets::get));
     bp.route(GET, "/api/ping", f!(self::ping::get));
-    bp.route(GET, "/api/storage/create/{dir}", f!(self::storage_create::get));
+    bp.route(GET, "/api/storage/create", f!(self::storage_create::get))
+        .error_handler(f!(crate::routes::storage_create::storage_create2response));
 }

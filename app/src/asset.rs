@@ -11,6 +11,7 @@ use std::borrow::Cow;
 #[folder = "../static"]
 struct Asset;
 
+// struct type to represent incoming path parameters
 #[PathParams]
 pub struct GetFilenameParams<'a> {
     filename: Cow<'a, str>,
