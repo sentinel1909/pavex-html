@@ -79,4 +79,15 @@ impl TestApi {
             .await
             .expect("Failed to execute request.")
     }
+
+    pub async fn post_storage_create(&self, query: &str) -> reqwest::Response {
+        self.api_client
+            .post(format!(
+                "{}/api/storage/create?dir={}",
+                &self.api_address, query
+            ))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
 }

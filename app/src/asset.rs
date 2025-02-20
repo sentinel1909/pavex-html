@@ -32,7 +32,7 @@ impl StaticAsset {
         Self {
             name: Cow::Owned(file.to_string()),
             data: Asset::get(&file).unwrap().data(),
-            mime_type: from_path(file.as_ref()) 
+            mime_type: from_path(file.as_ref())
                 .first_raw()
                 .map(|s| Cow::Owned(s.to_string()))
                 .unwrap_or_else(|| Cow::Borrowed("application/octet-stream")),

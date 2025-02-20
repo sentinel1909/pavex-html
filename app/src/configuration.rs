@@ -1,5 +1,5 @@
-use opendal::{Error, Operator};
 use opendal::services::Fs;
+use opendal::{Error, Operator};
 use pavex::blueprint::Blueprint;
 use pavex::t;
 use std::borrow::Cow;

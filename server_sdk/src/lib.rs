@@ -156,7 +156,7 @@ impl Router {
             }
             2u32 => {
                 match &request_head.method {
-                    &pavex::http::Method::GET => {
+                    &pavex::http::Method::POST => {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/storage/create",
                         );
@@ -169,7 +169,7 @@ impl Router {
                     }
                     _ => {
                         let allowed_methods: pavex::router::AllowedMethods = pavex::router::MethodAllowList::from_iter([
-                                pavex::http::Method::GET,
+                                pavex::http::Method::POST,
                             ])
                             .into();
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
@@ -655,7 +655,7 @@ pub mod route_3 {
                 };
             }
         };
-        let v5 = app::routes::storage_create::get(v2, &v4).await;
+        let v5 = app::routes::storage_create::post(v2, &v4).await;
         let v6 = match v5 {
             Ok(ok) => ok,
             Err(v6) => {

@@ -2,5 +2,3 @@ server:
   ip: "0.0.0.0"
   port: 8000
   graceful_shutdown_timeout: 1 minute
-local_storage:
-  root: "/home/jeff/dev/source/repos/rust-lang/pavex-html/assets"

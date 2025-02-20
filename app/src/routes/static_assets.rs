@@ -14,7 +14,7 @@ impl TypedBody for StaticAsset {
     type Body = Full<Bytes>;
 
     fn content_type(&self) -> HeaderValue {
-         HeaderValue::from_str(&self.mime_type).unwrap()
+        HeaderValue::from_str(&self.mime_type).unwrap()
     }
 
     fn body(self) -> Self::Body {
@@ -24,6 +24,5 @@ impl TypedBody for StaticAsset {
 
 // handler function which responds with a 200 OK and the CSS styles
 pub fn get(asset: StaticAsset) -> Response {
-    
     Response::ok().set_typed_body(asset)
 }
