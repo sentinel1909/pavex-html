@@ -72,9 +72,25 @@ impl TestApi {
 
 /// Convenient methods for calling the API under test.
 impl TestApi {
+    pub async fn get_index(&self) -> reqwest::Response {
+        self.api_client
+            .get(format!("{}/", &self.api_address))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn get_ping(&self) -> reqwest::Response {
         self.api_client
             .get(format!("{}/api/ping", &self.api_address))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_static_asset(&self, filename: &str) -> reqwest::Response {
+        self.api_client
+            .get(format!("{}/static/{}", &self.api_address, filename))
             .send()
             .await
             .expect("Failed to execute request.")

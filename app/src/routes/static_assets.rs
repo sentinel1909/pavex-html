@@ -24,5 +24,11 @@ impl TypedBody for StaticAsset {
 
 // handler function which responds with a 200 OK and the CSS styles
 pub fn get(asset: StaticAsset) -> Response {
-    Response::ok().set_typed_body(asset)
+    
+    match asset {
+        Some(a) => Response::ok().set_typed_body(a),
+        None => Response::no_content().set_typed_body("No content")
+    }
+    
+    
 }

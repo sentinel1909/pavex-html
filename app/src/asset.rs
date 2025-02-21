@@ -7,6 +7,21 @@ use pavex::request::path::PathParams;
 use rust_embed_for_web::{EmbedableFile, RustEmbed};
 use std::borrow::Cow;
 
+// trait for asset retrieval
+pub trait AssetProvider {
+    fn get_asset(&self, filename: &str) -> Option<Vec<u8>>;
+}
+
+// default provider for real assets
+pub struct EmbeddedAssetProvider;
+
+// implement the AssetProvider trait for EmbeddedAssetProvider
+impl AssetProvider for crate::asset::EmbeddedAssetProvider {
+    fn get_asset(&self, filename: &str) -> Option<Vec<u8>> {
+        Asset::get(filename).map(|f| f.data())
+    }
+}
+
 // struct type to represent a static asset from the file system
 #[derive(RustEmbed)]
 #[folder = "../static"]
@@ -29,7 +44,7 @@ pub struct StaticAsset {
 
 // methods for the StaticAsset type
 impl StaticAsset {
-    pub fn build_static_asset(params: PathParams<GetFilenameParams>) -> Self {
+    pub fn build_static_asset(params: PathParams<GetFilenameParams>, provider: &dyn crate::asset::AssetProvider) -> Option<Self> {
         let file = params.0.filename;
 
         let name = Cow::Owned(file.to_string());
@@ -39,18 +54,18 @@ impl StaticAsset {
             .map(Cow::Borrowed)
             .unwrap_or_else(|| Cow::Borrowed("application/octet-stream"));
 
-        let data = Asset::get(file.as_ref()).unwrap().data();
+        let data = provider.get_asset(file.as_ref())?;
 
         let mime_header = match HeaderValue::from_str(&mime_type) {
             Ok(hv) => hv,
             Err(_) => HeaderValue::from_static("application/octet-stream"),
         };
 
-        Self {
+        Some(Self {
             name,
             data,
             mime_type,
             mime_header,
-        }
+        })
     }
 }
