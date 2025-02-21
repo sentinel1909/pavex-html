@@ -9,12 +9,12 @@ use pavex::response::body::{
 };
 use pavex::response::Response;
 
-// implement the TypedBody trait for the CSSAsset type, so that the 'text/css' header is set
+// implement the TypedBody trait for the StaticAsset type, so that the 'content-type' header is set
 impl TypedBody for StaticAsset {
     type Body = Full<Bytes>;
 
     fn content_type(&self) -> HeaderValue {
-        HeaderValue::from_str(&self.mime_type).unwrap()
+        self.mime_header.clone()
     }
 
     fn body(self) -> Self::Body {

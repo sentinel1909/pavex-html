@@ -2,6 +2,7 @@ use crate::helpers::TestApi;
 use pavex::http::StatusCode;
 use serde_json::{json, Value};
 use std::borrow::Cow;
+use std::fs::remove_dir_all;
 use uuid::Uuid;
 
 #[derive(Debug, serde::Serialize)]
@@ -26,7 +27,18 @@ async fn storage_create_works() {
         message: Cow::Owned(format!("Created new directory named: {}", test_directory)),
     };
 
+    let response_body = response
+        .json::<Value>()
+        .await
+        .expect("Unable to deserialize response body");
+
     let expected_body_json = json!(expected_body);
 
-    assert_eq!(response.json::<Value>().await.unwrap(), expected_body_json);
+    assert_eq!(response_body, expected_body_json);
+
+    remove_dir_all(format!(
+        "/home/jeff/dev/source/repos/rust-lang/pavex-html/testing/{}",
+        test_dir
+    ))
+    .expect("Unable to remove the temporary test file directory");
 }
