@@ -18,10 +18,11 @@ async fn static_asset_works() {
         .get("Content-Type")
         .expect("Expected Content-Type header in response.");
 
-    let response_header_str = response_header.to_str().expect("Unable to get the response header text");
+    let response_header_str = response_header
+        .to_str()
+        .expect("Unable to get the response header text");
 
     let expected_header_str = "text/css; charset=utf-8";
 
     assert_eq!(response_header_str, expected_header_str);
-
 }
