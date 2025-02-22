@@ -15,7 +15,7 @@ impl TypedBody for StaticAsset {
     type Body = Full<Bytes>;
 
     fn content_type(&self) -> HeaderValue {
-        self.asset_header_value.clone()
+        self.get_header_value()
     }
 
     fn body(self) -> Self::Body {

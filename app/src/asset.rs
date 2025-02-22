@@ -2,9 +2,8 @@
 
 // dependencies
 use mime_guess::from_path;
-use pavex::http::{header::InvalidHeaderValue, HeaderValue};
+use pavex::http::HeaderValue;
 use pavex::request::path::PathParams;
-use pavex::response::Response;
 use rust_embed_for_web::{EmbedableFile, RustEmbed};
 use std::borrow::Cow;
 
@@ -40,16 +39,11 @@ pub struct StaticAsset {
     pub asset_name: Cow<'static, str>,
     pub asset_data: Vec<u8>,
     pub asset_mime_type: Cow<'static, str>,
-    pub asset_header_value: HeaderValue,
-}
-// error handler for build static asset constructor
-pub async  fn invalid_header2response(e: &pavex::Error) -> Response {
-    Response::internal_server_error().set_typed_body(e.to_string())
 }
 
 // methods for the StaticAsset type
 impl StaticAsset {
-    pub fn build_static_asset(params: PathParams<GetFilenameParams>) -> Result<Self, InvalidHeaderValue> {
+    pub fn build_static_asset(params: PathParams<GetFilenameParams>) -> Self {
         let asset_file = params.0.filename;
 
         let asset_name = Cow::Owned(asset_file.to_string());
@@ -61,13 +55,14 @@ impl StaticAsset {
 
         let asset_data = EmbeddedAsset.get_asset(asset_file.as_ref()).unwrap_or_default();
 
-        let asset_header_value = HeaderValue::from_str(&asset_mime_type)?;
-
-        Ok(Self {
+        Self {
             asset_name,
             asset_data,
             asset_mime_type,
-            asset_header_value,
-        })
+        }
+    }
+
+    pub fn get_header_value(&self) -> HeaderValue {
+        HeaderValue::from_str(&self.asset_mime_type).unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream"))
     }
 }

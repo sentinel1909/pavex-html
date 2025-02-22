@@ -15,7 +15,6 @@ pub fn blueprint() -> Blueprint {
     routes::register(&mut bp);
     bp.singleton(f!(crate::template::compile_templates));
     bp.transient(f!(crate::asset::StaticAsset::build_static_asset))
-        .error_handler(f!(crate::asset::invalid_header2response))
         .clone_if_necessary();
     
     bp

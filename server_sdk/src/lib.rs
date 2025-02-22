@@ -465,21 +465,8 @@ pub mod route_1 {
             }
         };
         let v4 = app::asset::StaticAsset::build_static_asset(v3);
-        let v5 = match v4 {
-            Ok(ok) => ok,
-            Err(v5) => {
-                return {
-                    let v6 = pavex::Error::new(v5);
-                    let v7 = app::asset::invalid_header2response(&v6).await;
-                    app::telemetry::error_logger(&v6, v1).await;
-                    <pavex::response::Response as pavex::response::IntoResponse>::into_response(
-                        v7,
-                    )
-                };
-            }
-        };
-        let v6 = app::routes::static_assets::get(v5);
-        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v6)
+        let v5 = app::routes::static_assets::get(v4);
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v5)
     }
     async fn post_processing_0(
         v0: pavex::response::Response,
