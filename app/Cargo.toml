@@ -27,5 +27,6 @@ tera = "1.20.0"
 tracing = "0.1"
 tracing_log_error = "0.1"
 workspace_hack = { path = "../workspace_hack" }
+pulldown-cmark = "0.13.0"
 
 

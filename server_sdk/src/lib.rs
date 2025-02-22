@@ -250,17 +250,19 @@ pub mod route_0 {
     async fn stage_1<'a, 'b>(
         s_0: pavex_tracing::RootSpan,
         s_1: &'a tera::Tera,
-        s_2: &'b biscotti::Processor,
+        mut s_2: pavex::cookie::ResponseCookies,
+        s_3: &'b biscotti::Processor,
     ) -> pavex::response::Response {
-        let response = wrapping_1(s_0.clone(), s_1).await;
-        let response = post_processing_1(response, &s_0, s_2).await;
+        let response = wrapping_1(s_0.clone(), &mut s_2, s_1).await;
+        let response = post_processing_1(response, s_2, &s_0, s_3).await;
         response
     }
-    async fn stage_2<'a, 'b>(
+    async fn stage_2<'a, 'b, 'c>(
         s_0: &'a pavex_tracing::RootSpan,
         s_1: &'b tera::Tera,
+        s_2: &'c mut pavex::cookie::ResponseCookies,
     ) -> pavex::response::Response {
-        let response = handler(s_0, s_1).await;
+        let response = handler(s_1, s_0, s_2).await;
         let response = post_processing_0(response, s_0).await;
         response
     }
@@ -270,51 +272,56 @@ pub mod route_0 {
         v2: pavex::request::path::MatchedPathPattern,
         v3: &tera::Tera,
     ) -> pavex::response::Response {
-        let v4 = pavex::telemetry::ServerRequestId::generate();
-        let v5 = app::telemetry::root_span(v1, v2, v4);
-        let v6 = crate::route_0::Next0 {
-            s_0: v5,
+        let v4 = pavex::cookie::ResponseCookies::new();
+        let v5 = pavex::telemetry::ServerRequestId::generate();
+        let v6 = app::telemetry::root_span(v1, v2, v5);
+        let v7 = crate::route_0::Next0 {
+            s_0: v6,
             s_1: v3,
-            s_2: v0,
+            s_2: v4,
+            s_3: v0,
             next: stage_1,
         };
-        let v7 = pavex::middleware::Next::new(v6);
-        let v8 = pavex::middleware::wrap_noop(v7).await;
-        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v8)
+        let v8 = pavex::middleware::Next::new(v7);
+        let v9 = pavex::middleware::wrap_noop(v8).await;
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v9)
     }
     async fn wrapping_1(
         v0: pavex_tracing::RootSpan,
-        v1: &tera::Tera,
+        v1: &mut pavex::cookie::ResponseCookies,
+        v2: &tera::Tera,
     ) -> pavex::response::Response {
-        let v2 = crate::route_0::Next1 {
+        let v3 = crate::route_0::Next1 {
             s_0: &v0,
-            s_1: v1,
+            s_1: v2,
+            s_2: v1,
             next: stage_2,
         };
-        let v3 = pavex::middleware::Next::new(v2);
-        let v4 = <pavex_tracing::RootSpan as core::clone::Clone>::clone(&v0);
-        let v5 = pavex_tracing::logger(v4, v3).await;
-        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v5)
+        let v4 = pavex::middleware::Next::new(v3);
+        let v5 = <pavex_tracing::RootSpan as core::clone::Clone>::clone(&v0);
+        let v6 = pavex_tracing::logger(v5, v4).await;
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v6)
     }
     async fn handler(
-        v0: &pavex_tracing::RootSpan,
-        v1: &tera::Tera,
+        v0: &tera::Tera,
+        v1: &pavex_tracing::RootSpan,
+        v2: &mut pavex::cookie::ResponseCookies,
     ) -> pavex::response::Response {
-        let v2 = app::routes::index::get(v1);
-        let v3 = match v2 {
+        let v3 = app::routes::index::get(v2, v0);
+        let v4 = match v3 {
             Ok(ok) => ok,
-            Err(v3) => {
+            Err(v4) => {
                 return {
-                    let v4 = pavex::Error::new(v3);
-                    let v5 = app::routes::index::tera_error2response(&v4);
-                    app::telemetry::error_logger(&v4, v0).await;
+                    let v5 = pavex::Error::new(v4);
+                    let v6 = app::routes::index::tera_error2response(&v5);
+                    app::telemetry::error_logger(&v5, v1).await;
                     <pavex::response::Response as pavex::response::IntoResponse>::into_response(
-                        v5,
+                        v6,
                     )
                 };
             }
         };
-        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v3)
+        <pavex::response::Response as pavex::response::IntoResponse>::into_response(v4)
     }
     async fn post_processing_0(
         v0: pavex::response::Response,
@@ -325,11 +332,11 @@ pub mod route_0 {
     }
     async fn post_processing_1(
         v0: pavex::response::Response,
-        v1: &pavex_tracing::RootSpan,
-        v2: &biscotti::Processor,
+        v1: pavex::cookie::ResponseCookies,
+        v2: &pavex_tracing::RootSpan,
+        v3: &biscotti::Processor,
     ) -> pavex::response::Response {
-        let v3 = pavex::cookie::ResponseCookies::new();
-        let v4 = pavex::cookie::inject_response_cookies(v0, v3, v2);
+        let v4 = pavex::cookie::inject_response_cookies(v0, v1, v3);
         let v5 = match v4 {
             Ok(ok) => ok,
             Err(v5) => {
@@ -338,7 +345,7 @@ pub mod route_0 {
                         &v5,
                     );
                     let v7 = pavex::Error::new(v5);
-                    app::telemetry::error_logger(&v7, v1).await;
+                    app::telemetry::error_logger(&v7, v2).await;
                     <pavex::response::Response as pavex::response::IntoResponse>::into_response(
                         v6,
                     )
@@ -353,8 +360,14 @@ pub mod route_0 {
     {
         s_0: pavex_tracing::RootSpan,
         s_1: &'a tera::Tera,
-        s_2: &'b biscotti::Processor,
-        next: fn(pavex_tracing::RootSpan, &'a tera::Tera, &'b biscotti::Processor) -> T,
+        s_2: pavex::cookie::ResponseCookies,
+        s_3: &'b biscotti::Processor,
+        next: fn(
+            pavex_tracing::RootSpan,
+            &'a tera::Tera,
+            pavex::cookie::ResponseCookies,
+            &'b biscotti::Processor,
+        ) -> T,
     }
     impl<'a, 'b, T> std::future::IntoFuture for Next0<'a, 'b, T>
     where
@@ -363,25 +376,30 @@ pub mod route_0 {
         type Output = pavex::response::Response;
         type IntoFuture = T;
         fn into_future(self) -> Self::IntoFuture {
-            (self.next)(self.s_0, self.s_1, self.s_2)
+            (self.next)(self.s_0, self.s_1, self.s_2, self.s_3)
         }
     }
-    struct Next1<'a, 'b, T>
+    struct Next1<'a, 'b, 'c, T>
     where
         T: std::future::Future<Output = pavex::response::Response>,
     {
         s_0: &'a pavex_tracing::RootSpan,
         s_1: &'b tera::Tera,
-        next: fn(&'a pavex_tracing::RootSpan, &'b tera::Tera) -> T,
+        s_2: &'c mut pavex::cookie::ResponseCookies,
+        next: fn(
+            &'a pavex_tracing::RootSpan,
+            &'b tera::Tera,
+            &'c mut pavex::cookie::ResponseCookies,
+        ) -> T,
     }
-    impl<'a, 'b, T> std::future::IntoFuture for Next1<'a, 'b, T>
+    impl<'a, 'b, 'c, T> std::future::IntoFuture for Next1<'a, 'b, 'c, T>
     where
         T: std::future::Future<Output = pavex::response::Response>,
     {
         type Output = pavex::response::Response;
         type IntoFuture = T;
         fn into_future(self) -> Self::IntoFuture {
-            (self.next)(self.s_0, self.s_1)
+            (self.next)(self.s_0, self.s_1, self.s_2)
         }
     }
 }

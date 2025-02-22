@@ -10,7 +10,7 @@ use tracing_log_error::log_error;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let subscriber = get_subscriber("pavex_html".into(), "info".into(), std::io::stdout);
+    let subscriber = get_subscriber("pavex_web_server".into(), "info".into(), std::io::stdout);
     init_telemetry(subscriber)?;
 
     // We isolate all the server setup and launch logic in a separate function

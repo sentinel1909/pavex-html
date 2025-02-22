@@ -53,7 +53,9 @@ impl StaticAsset {
             .map(|s| Cow::Owned(s.to_string()))
             .unwrap_or_else(|| Cow::Owned("application/octet-stream".to_string()));
 
-        let asset_data = EmbeddedAsset.get_asset(asset_file.as_ref()).unwrap_or_default();
+        let asset_data = EmbeddedAsset
+            .get_asset(asset_file.as_ref())
+            .unwrap_or_default();
 
         Self {
             asset_name,
@@ -63,6 +65,7 @@ impl StaticAsset {
     }
 
     pub fn get_header_value(&self) -> HeaderValue {
-        HeaderValue::from_str(&self.asset_mime_type).unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream"))
+        HeaderValue::from_str(&self.asset_mime_type)
+            .unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream"))
     }
 }

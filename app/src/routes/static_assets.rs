@@ -10,7 +10,7 @@ use pavex::response::body::{
 use pavex::response::Response;
 
 // implement the TypedBody trait for the StaticAsset type, so that the the response body
-// can be created 
+// can be created
 impl TypedBody for StaticAsset {
     type Body = Full<Bytes>;
 
@@ -25,5 +25,5 @@ impl TypedBody for StaticAsset {
 
 // handler function which responds with a 200 OK and the CSS styles
 pub fn get(asset: StaticAsset) -> Response {
-   Response::ok().set_typed_body(asset) 
+    Response::ok().set_typed_body(asset)
 }
