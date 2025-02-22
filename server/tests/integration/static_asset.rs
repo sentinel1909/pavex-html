@@ -7,22 +7,32 @@ use pavex::http::StatusCode;
 async fn static_asset_works() {
     let api = TestApi::spawn().await;
 
-    let filename = "test.css";
+    let test_cases = [
+        ("text.css", "text/css"),
+        ("image.ico", "image/x-icon"),
 
-    let response = api.get_static_asset(filename).await;
+        ("script.js", "text/javascript"),
+    ];
 
-    assert_eq!(response.status(), StatusCode::OK);
+    for (filename, expected_content_type) in test_cases.iter() {
+        let response = api.get_static_asset(filename).await;
 
-    let response_header = response
-        .headers()
-        .get("Content-Type")
-        .expect("Expected Content-Type header in response.");
+        assert_eq!(response.status(), StatusCode::OK, "Unexpected status code for {}", filename);
 
-    let response_header_str = response_header
-        .to_str()
-        .expect("Unable to get the response header text");
+        let response_header = response
+            .headers()
+            .get("Content-Type")
+            .unwrap_or_else(|| panic!("Expected Content-Type header in response for {}", filename));
 
-    let expected_header_str = "text/css; charset=utf-8";
+        let response_header_str = response_header
+            .to_str()
+            .expect("Unable to convert Content-Type header to string");
 
-    assert_eq!(response_header_str, expected_header_str);
+        assert_eq!(
+            response_header_str, 
+            *expected_content_type,
+            "Unexpected Content-Type for {}: expected {}, got {}",
+            filename, expected_content_type, response_header_str
+        );
+    }
 }

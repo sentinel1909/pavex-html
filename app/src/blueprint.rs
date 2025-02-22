@@ -1,5 +1,6 @@
 use crate::{configuration, routes, telemetry};
 use pavex::blueprint::Blueprint;
+use pavex::cookie::CookieKit;
 use pavex::f;
 use pavex::kit::ApiKit;
 
@@ -8,11 +9,13 @@ use pavex::kit::ApiKit;
 pub fn blueprint() -> Blueprint {
     let mut bp = Blueprint::new();
     ApiKit::new().register(&mut bp);
+    CookieKit::new().register(&mut bp);
     telemetry::register(&mut bp);
     configuration::register(&mut bp);
     routes::register(&mut bp);
     bp.singleton(f!(crate::template::compile_templates));
     bp.transient(f!(crate::asset::StaticAsset::build_static_asset))
+        .error_handler(f!(crate::asset::invalid_header2response))
         .clone_if_necessary();
     
     bp

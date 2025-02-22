@@ -1,11 +1,13 @@
 use opendal::services::Fs;
 use opendal::{Error, Operator};
 use pavex::blueprint::Blueprint;
-use pavex::t;
+use pavex::cookie::ProcessorConfig;
+use pavex::{f, t};
 use std::borrow::Cow;
 
 pub fn register(bp: &mut Blueprint) {
     bp.prebuilt(t!(self::AppConfig));
+    bp.singleton(f!(self::AppConfig::cookie_config));
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -13,12 +15,18 @@ pub fn register(bp: &mut Blueprint) {
 /// to configure the application.
 pub struct AppConfig {
     pub local_storage: OpenDalConfig,
+    #[serde(default)]
+    pub cookie: ProcessorConfig,
 }
 
 // methods for the AppConfig type
 impl AppConfig {
     pub fn local_storage_config(&self) -> &OpenDalConfig {
         &self.local_storage
+    }
+
+    pub fn cookie_config(&self) -> ProcessorConfig {
+        self.cookie.clone()
     }
 }
 

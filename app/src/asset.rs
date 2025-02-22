@@ -2,10 +2,26 @@
 
 // dependencies
 use mime_guess::from_path;
-use pavex::http::HeaderValue;
+use pavex::http::{header::InvalidHeaderValue, HeaderValue};
 use pavex::request::path::PathParams;
+use pavex::response::Response;
 use rust_embed_for_web::{EmbedableFile, RustEmbed};
 use std::borrow::Cow;
+
+// trait which helps define a generic asset provider
+pub trait AssetProvider {
+    fn get_asset(&self, filename: &str) -> Option<Vec<u8>>;
+}
+
+// struct type for an embedded asset
+pub struct EmbeddedAsset;
+
+// implement the AssetP:rovider trait for EmbeddedAsset
+impl AssetProvider for EmbeddedAsset {
+    fn get_asset(&self, filename: &str) -> Option<Vec<u8>> {
+        Asset::get(filename).map(|f| f.data())
+    }
+}
 
 // struct type to represent a static asset from the file system
 #[derive(RustEmbed)]
@@ -21,36 +37,37 @@ pub struct GetFilenameParams<'a> {
 // struct type to represent a static asset, CSS, JS, an image, or anything else
 #[derive(Debug, Clone)]
 pub struct StaticAsset {
-    pub name: Cow<'static, str>,
-    pub data: Vec<u8>,
-    pub mime_type: Cow<'static, str>,
-    pub mime_header: HeaderValue,
+    pub asset_name: Cow<'static, str>,
+    pub asset_data: Vec<u8>,
+    pub asset_mime_type: Cow<'static, str>,
+    pub asset_header_value: HeaderValue,
+}
+// error handler for build static asset constructor
+pub async  fn invalid_header2response(e: &pavex::Error) -> Response {
+    Response::internal_server_error().set_typed_body(e.to_string())
 }
 
 // methods for the StaticAsset type
 impl StaticAsset {
-    pub fn build_static_asset(params: PathParams<GetFilenameParams>) -> Self {
-        let file = params.0.filename;
+    pub fn build_static_asset(params: PathParams<GetFilenameParams>) -> Result<Self, InvalidHeaderValue> {
+        let asset_file = params.0.filename;
 
-        let name = Cow::Owned(file.to_string());
+        let asset_name = Cow::Owned(asset_file.to_string());
 
-        let mime_type = from_path(file.as_ref())
+        let asset_mime_type = from_path(asset_file.as_ref())
             .first_raw()
-            .map(Cow::Borrowed)
-            .unwrap_or_else(|| Cow::Borrowed("application/octet-stream"));
+            .map(|s| Cow::Owned(s.to_string()))
+            .unwrap_or_else(|| Cow::Owned("application/octet-stream".to_string()));
 
-        let data = Asset::get(file.as_ref()).unwrap().data(); 
+        let asset_data = EmbeddedAsset.get_asset(asset_file.as_ref()).unwrap_or_default();
 
-        let mime_header = match HeaderValue::from_str(&mime_type) {
-            Ok(hv) => hv,
-            Err(_) => HeaderValue::from_static("application/octet-stream"),
-        };
+        let asset_header_value = HeaderValue::from_str(&asset_mime_type)?;
 
-        Self {
-            name,
-            data,
-            mime_type,
-            mime_header,
-        }
+        Ok(Self {
+            asset_name,
+            asset_data,
+            asset_mime_type,
+            asset_header_value,
+        })
     }
 }

@@ -17,6 +17,7 @@ clippy = { all = "allow" }
 
 [dependencies]
 app = { version = "0.1.0", path = "../app", default-features = false }
+biscotti = { version = "0.3.4", default-features = false }
 http = { version = "1.2.0", default-features = false }
 hyper = { version = "1.6.0", default-features = false }
 matchit = { version = "0.8.6", default-features = false }
